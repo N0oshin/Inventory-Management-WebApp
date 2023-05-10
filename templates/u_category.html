@@ -1,0 +1,40 @@
+
+{% extends 'base3.html' %}
+
+{% block content %}
+<style>
+body{
+background-color:#F2F7A1;
+}
+</style>
+<h1 style="text-align:center; font-family:Montserrat; margin-top:30px; font-weight:bold;"> {% block title %} Categories {% endblock %}</h1>
+<div class="row">
+    <div class="col col-left"> 
+    {% for category in categories %}
+        <div class="post_container">
+            <div class="row">
+                <div class="col-lg-6">
+                        <a href="{{ url_for('u_items_list',c_id=category['c_id']) }}"> 
+                        <h2 class="category_title">{{ category['c_name'] }}</h2>
+                        </a>
+                </div>
+            </div>
+        </div>
+        <hr>
+    {% endfor %}
+    
+       
+        
+    </div>
+    <div class="col hero-image img5" style="margin-left:70px"> 
+    
+    </div>
+</div>
+
+
+  
+{% endblock %}
+
+
+
+

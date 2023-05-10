@@ -1,0 +1,30 @@
+{% extends 'base2.html' %}
+{% block content %}
+    <h1 style="text-align:center;">out of stock</h1>
+    
+    <hr>
+    {% for item in items %}
+    <div class="post_container">
+
+        <div class="row">
+    		<div class="col-lg-4">
+            <h2 class="post_title">{{ item['name'] }}</h2>
+    		</div>
+            <div class="col-lg-4 "><a href="{{ url_for('out_of_stock_add',id=item['id']) }}">
+                <span class="btn btn-dark">Add Stock</span>
+            </a></div>
+        </div>
+        
+    </div>
+        
+   
+
+
+        
+
+        <hr>
+    {% endfor %}
+    
+
+
+{% endblock %}

@@ -1,0 +1,61 @@
+{% extends 'base2.html' %}
+
+{% block content %}
+
+<style>
+body{
+background-color:#F9F8ED;
+}
+</style>
+
+<h1 style="text-align:center; font-family:roboto; margin-top:50px;"> {% block title %} Orders {% endblock %}</h1>
+
+<form method="post" style="padding-top:50px; padding-bottom:50px;">
+  <div class="form-row">
+    <div class="col-6">
+      <input type="search" class="form-control" name="u_id" placeholder="user id" aria-label="Search" value="{{u_id}}">
+    </div>
+    
+    <button type="submit button" style="margin-left:20px; padding-left:10px; padding-right:10px;" class="btn btn-info">Search</button>
+  </div>
+  
+</form>
+
+
+<table class="table table-striped table-hover">
+    <thead>
+      <tr>
+        <th scope="col">Order ID</th>
+        <th scope="col">Time</th>
+        <th scope="col">User ID</th>
+        <th scope="col">User Name</th>
+        <th scope="col">Product Name</th>
+        <th scope="col">Quantity</th>
+        <th scope="col">Total amount</th>
+        <th scope="col">Status</th>
+      </tr>
+    </thead>
+    <tbody>
+        {% for order in orders %}
+      <tr>
+      
+        <th scope="row">{{ order['order_id'] }}</th>
+        <td>{{ order['order_dateandtime'] }}</td>
+        <td>{{ order['u_id'] }}</td>
+        <td>{{ order['u_username'] }}</td>
+        <td>{{ order['name'] }}</td>
+        <td>{{ order['quantity'] }}</td>
+        <td>{{ order['price'] }}</td>
+        <td><a href="{{ url_for('collected',order_id=order['order_id']) }}">
+            <button type="submit button"  class="btn btn-dark">Collected</button>
+            </a>
+            <a href="{{ url_for('delete_order',order_id=order['order_id']) }}">
+            <button type="submit button"  class="btn btn-dark">Cancel</button>
+            </a>
+           </td>
+        </tr>	
+  {% endfor %}
+  
+</tbody>
+</table>
+    {% endblock %}

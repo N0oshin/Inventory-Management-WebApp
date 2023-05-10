@@ -1,0 +1,46 @@
+{% extends 'base3.html' %}
+
+{% block content %}
+
+<style>
+body{
+background-color:#F9F8ED;
+}
+</style>
+
+<h1 style="text-align:center; font-family:roboto; margin-top:50px;"> {% block title %} Previous Purchase {% endblock %}</h1>
+
+<table class="table table-striped">
+    <thead>
+      <tr>
+        <th scope="col">Order Id</th>
+        <th scope="col">Product Name</th>
+        <th scope="col">Quantity</th>
+        <th scope="col">Price</th>
+        <th scope="col">Order Date and Time</th>
+      </tr>
+    </thead>
+    <tbody>
+
+        {% for order in orders %}
+   
+
+
+
+
+      <tr>
+        <th scope="row">{{ order['order_id'] }}</th>
+        
+        <td>{{ order['name'] }}</td>
+        <td>{{ order['quantity'] }}</td>
+        <td>{{ order['price'] }}</td>
+        <th scope="row">{{ order['dat'] }}</th>
+
+        </tr>
+
+    
+	
+  {% endfor %}
+  {% endblock %}
+</tbody>
+</table>

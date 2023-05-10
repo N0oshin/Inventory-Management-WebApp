@@ -1,0 +1,39 @@
+
+{% extends 'base.html' %}
+
+
+{% block content %}
+
+<style>
+body{
+background-color:#E3F6FF;
+font-family:Roboto;
+}
+</style>
+
+<section class="vh-100 signin">
+  <div class="container py-5 h-100">
+  
+    <div class="row d-flex align-items-center justify-content-center h-100">
+      <div class="col-md-8 col-lg-7 col-xl-6">
+        <img src="https://mdbcdn.b-cdn.net/img/Photos/new-templates/bootstrap-login-form/draw2.svg"
+          class="img-fluid" alt="Phone image">
+      </div>
+      <div class="col-md-7 col-lg-5 col-xl-5 offset-xl-1">
+      <h1 style="margin-bottom:50px; font-weight:200">{% block title %} Sign-In {% endblock %}</h1>
+        <form method ="post">
+          <div class="form-outline mb-4">
+            <label for="u_uname"><b>Username</b></label>
+            <input type="text" placeholder="Enter Username" id="u_username" name="u_username" required> 
+          </div>
+          <div class="form-outline mb-4">
+            <label for="u_psw"><b>Password</b></label>
+    <input type="password" placeholder="Enter Password" id="u_password" name="u_password" required>
+          </div>
+          <button type="submit" class="btn btn-light btn-lg" style="font-weight: bold;"value="Login">Login</button>
+       </div>   
+    </form>
+    </div>
+  </div>
+
+{% endblock %}

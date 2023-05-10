@@ -1,0 +1,50 @@
+{% extends 'base3.html' %}
+{% block content %}
+<style>
+body{
+background-color:#F2F7A1;
+font-family:Montserrat;
+}
+</style>
+<div class=container style="display: flex; justify-content: center;">
+<h1 style="text-align:center; margin-top:90px; font-weight:bold; display:inline ;margin-right:30px "> {% block title %} Items {% endblock %}</h1>
+<img src="/static/images/img6.png"width="170" height="200">
+</div>
+
+<div class="row" style="margin-top:30px; background-color:#D6E4AA">
+<div class="col col1">
+    <h2>Product name</h2>
+</div>
+
+<div class="col col1">
+    <h2>Available Qnty</h2>
+</div>
+
+<div class="col col1" style="margin-right:70px;">
+    <h2>Price perunit</h2>
+</div>
+</div>
+
+
+<div class="post_container" style="margin-top:20px;">
+{% for item in items %}
+    	<div class="row">
+    	    <div class="col">
+                <h2 class="post_title">{{ item['name'] }}</h2>
+             </div>
+            <div class="col">
+                <h3>{{ item['weight'] }}</h3>
+                
+            </div>
+            <div class="col">
+                <h3>${{ item['price_per_unit'] }}</h3>
+            </div>
+            <a href="{{ url_for('pre_book',c_id=item['c_id'],i_id=item['id']) }}">
+            <button type="button" class="btn btn-dark">Pre-book</button>
+            </a>
+            
+    	</div>
+    	    <hr>
+    {% endfor %}
+    </div>
+{% endblock %}

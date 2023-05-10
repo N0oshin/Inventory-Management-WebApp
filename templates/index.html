@@ -1,0 +1,36 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<style>
+body{
+background-color:#E3F6FF;
+}
+</style>
+
+<div class="row">
+    <div class="col col-left"> 
+    <h1 class="title">{% block title %} Welcome to P-Store {% endblock %}</h1>
+    <p>Get your orders placed</p>
+    
+        <a href="{{url_for('sign_in')}}">
+         <button type="button" style="margin-right:30px"
+         class="btn btn-dark btn-lg" ><i class="fa-solid fa-user-tie"></i>
+
+Admin</button>
+        </a>
+        
+        
+        <a href="{{url_for('user_signin')}}">
+        <button type="button" class="btn btn-light btn-lg" ><i class="fa-solid fa-user"></i>
+
+User</button>
+        </a>
+        
+        
+    </div>
+    <div class="col hero-image img1"
+    > 
+    
+    </div>
+</div>
+{% endblock %}

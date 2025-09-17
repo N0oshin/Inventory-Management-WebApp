@@ -6,7 +6,7 @@ def get_db_connection():
     conn = sqlite3.connect('database.db')
     conn.row_factory = sqlite3.Row
     return conn
-    
+    # sqlite3.Row factory allows you to access columns by name, which makes the code more readable.
  
 def get_post(post_id):
     conn = get_db_connection()
@@ -18,7 +18,8 @@ def get_post(post_id):
     
     
        
-app = Flask(__name__)
+app = Flask(__name__) 
+# initializes your Flask application.
 app.config['SECRET_KEY']= 'your secret key'
 
 
@@ -50,7 +51,7 @@ def sign_in():
     return render_template('sign_in.html')
 
 	
-
+# This route correctly retrieves and displays categories and handles the creation of new ones.
 @app.route('/category',methods=('GET','POST'))
 def category():
         conn = get_db_connection()
@@ -69,7 +70,7 @@ def category():
         return render_template('category.html',categories=categories) 
 
 
-
+# This route handles updating a category's name.
 @app.route('/<int:c_id>/c_edit', methods=('GET', 'POST'))
 def c_edit(c_id):
     conn = get_db_connection()
@@ -89,7 +90,8 @@ def c_edit(c_id):
     return render_template('c_edit.html',category=category)
         
         
-        
+
+# This route deletes a category.
 @app.route('/<int:c_id>/c_delete', methods=('GET', 'POST'))
 def c_delete(c_id):
     conn = get_db_connection()
@@ -101,9 +103,8 @@ def c_delete(c_id):
     return redirect(url_for('category'))      
         
         
-        
-       
 
+# This route handles item creation and retrieval.
 @app.route('/category/<int:c_id>/items_list', methods=('GET', 'POST'))
 def items_list(c_id):
     conn = get_db_connection()
@@ -124,7 +125,9 @@ def items_list(c_id):
     return render_template('items_list.html',items=items)
     
     
- 
+
+# /add_stock, /item_edit, /delete: These routes handle stock updates and item deletions. 
+
 @app.route('/<int:c_id>/<int:id>/add_stock', methods=('GET', 'POST'))
 def add_stock(c_id,id):
 	item=get_post(id)
@@ -173,10 +176,6 @@ def delete(c_id,id):
    	
    	
    	
-   	
-   	
-   	
-   	
 @app.route('/user_signin', methods=['GET', 'POST'])
 def user_signin():
     if request.method == 'POST':
@@ -200,7 +199,9 @@ def user_signin():
         conn.close    
     return render_template('user_signin.html')
 	
-	
+
+
+# /u_category, /u_items_list: These routes are for the user to browse categories and items. They correctly fetch data.
 @app.route('/u_category',methods=('GET','POST'))
 def u_category():
         conn = get_db_connection()
@@ -219,6 +220,7 @@ def u_items_list(c_id):
     
 
 
+# his route handles placing an order. It checks for stock availability and updates the database accordingly.
 @app.route('/u_category/<int:c_id>/u_items_list/<int:i_id>/pre_book',methods=['GET','POST'])
 def pre_book(c_id,i_id):
 	item=get_post(i_id)
@@ -252,11 +254,6 @@ def pre_book(c_id,i_id):
 
 
 
-
-
-
-
-
 @app.route('/orders', methods=('GET', 'POST'))
 def orders():
     conn = get_db_connection()
@@ -273,6 +270,8 @@ def orders():
     return render_template('orders.html',orders=orders)
     
 
+
+
 @app.route('/<int:order_id>/collected', methods=('GET', 'POST'))
 def collected(order_id):
     conn=get_db_connection()
@@ -288,7 +287,9 @@ def collected(order_id):
     conn.close()
     return redirect(url_for('orders'))
     
-    
+
+
+
 @app.route('/<int:order_id>/delete_order', methods=('GET', 'POST'))
 def delete_order(order_id):
     conn=get_db_connection()
@@ -308,7 +309,9 @@ def delete_order(order_id):
     flash('order_id = "{}" was successfully deleted!'.format(order['order_id']))
     return redirect(url_for('orders'))
     
-    
+
+
+
     
 @app.route('/history', methods=('GET', 'POST'))
 def history():

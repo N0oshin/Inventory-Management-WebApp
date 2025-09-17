@@ -2,12 +2,16 @@ import sqlite3
 from flask import Flask, render_template, request, url_for, flash, redirect, session
 from werkzeug.exceptions import abort
 
+
+# --- Database Helper Functions ---
+# This function establishes a connection to the SQLite database.
+# It sets the row_factory to sqlite3.Row, which allows accessing columns by name.
 def get_db_connection():
     conn = sqlite3.connect('database.db')
     conn.row_factory = sqlite3.Row
     return conn
-    # sqlite3.Row factory allows you to access columns by name, which makes the code more readable.
- 
+
+
 def get_post(post_id):
     conn = get_db_connection()
     post = conn.execute('SELECT * FROM Items WHERE id = ?',(post_id,)).fetchone()
@@ -17,9 +21,8 @@ def get_post(post_id):
     return post
     
     
-       
+# --- Flask App Initialization ---       
 app = Flask(__name__) 
-# initializes your Flask application.
 app.config['SECRET_KEY']= 'your secret key'
 
 
@@ -33,13 +36,16 @@ def sign_in():
     if request.method == 'POST':
         username=request.form['username']
         password=request.form['password']
+		# Connects to the database to check admin credentials.
         conn=sqlite3.connect("database.db")
         c=conn.cursor() 
         c.execute("SELECT * FROM Admin WHERE username = '"+username+"' and password = '"+password+"'") 
         r = c.fetchall()
-        for i in r:
-            
+
+		# Iterates through the fetched results to validate credentials.
+        for i in r:  
             if(username == i[1] and password == i[2]):
+				# Sets session variables upon successful login.
                 session["logedin"] = True
                 session["username"]=username
                 return redirect(url_for('category'))
@@ -70,7 +76,7 @@ def category():
         return render_template('category.html',categories=categories) 
 
 
-# This route handles updating a category's name.
+# This route allows admins to view, add, and manage categories.
 @app.route('/<int:c_id>/c_edit', methods=('GET', 'POST'))
 def c_edit(c_id):
     conn = get_db_connection()

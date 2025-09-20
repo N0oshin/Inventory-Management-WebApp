@@ -1,0 +1,21 @@
+# Python-specific files
+__pycache__/
+*.pyc
+venv/
+
+# Database files
+*.sqlite3
+database.db
+
+# Flask and OS-specific files
+.env
+instance/
+.flaskenv
+.vscode/
+
+# Temporary and log files
+*.log
+.DS_Store
+
+# Your HTML demo file
+templates/demo.html

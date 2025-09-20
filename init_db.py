@@ -1,44 +1,26 @@
 import sqlite3
+from werkzeug.security import generate_password_hash
 
-connection = sqlite3.connect('database.db')
+connection = sqlite3.connect("database.db")
 
-
-with open('schema.sql') as f:
+with open("schema.sql") as f:
     connection.executescript(f.read())
 
 cur = connection.cursor()
 
-cur.execute("INSERT INTO Admin (username, password,a_id) VALUES ('arjun','b200714cs',1)")
-cur.execute("INSERT INTO Admin (username, password,a_id) VALUES ('shyama','b200698cs',2)")
-cur.execute("INSERT INTO Admin (username, password,a_id) VALUES ('karthik','b200718cs',3)")
-cur.execute("INSERT INTO Admin (username, password,a_id) VALUES ('nooshin','b200690cs',4)")
-cur.execute("INSERT INTO Admin (username, password,a_id) VALUES ('vaishali','b200774cs',5")
+# Hashing the password for security
 
-cur.execute("INSERT INTO User (u_username, u_password,u_id) VALUES ('abc','123',1)")
-cur.execute("INSERT INTO User (u_username, u_password,u_id) VALUES ('a','1',2)")
-cur.execute("INSERT INTO User (u_username, u_password,u_id) VALUES ('b','2',3)")
+admin_username = "admin"
+admin_password_plain = "admin123"
+admin_password_hashed = generate_password_hash(admin_password_plain)
+admin_id = 1
 
-cur.execute('INSERT INTO Orders (u_id,item_id,quantity,price) VALUES (1,1,4,40)')
-cur.execute('INSERT INTO Orders (u_id,item_id,quantity,price) VALUES (1,2,4,40)')
-cur.execute('INSERT INTO Orders (u_id,item_id,quantity,price) VALUES (2,2,4,40)')
-
-cur.execute("INSERT INTO Items (name, weight, price_per_unit, c_id) VALUES (?, ?, ?, ?)",
-            ('Apple', 20, 30, 1)
-            )
-
-cur.execute("INSERT INTO Items (name, weight, price_per_unit, c_id) VALUES (?, ?, ?, ?)",
-            ('Orange', 23, 30, 1)
-            )
-cur.execute("INSERT INTO Items (name, weight, price_per_unit, c_id) VALUES (?, ?, ?, ?)",
-            ('Carrot', 23, 30, 2)
-            )
-cur.execute("INSERT INTO Categories (c_name,c_id) VALUES (?,?)",
-            ('Fruits',1)	
-            )
-cur.execute("INSERT INTO Categories (c_name,c_id) VALUES (?,?)",
-            ('Vegitables',2)	
-            )
+cur.execute(
+    "INSERT INTO Admin (a_id, username, password) VALUES (?, ?, ?)",
+    (admin_id, admin_username, admin_password_hashed),
+)
 
 connection.commit()
 connection.close()
 
+print("Database initialized successfully with a new admin user.")

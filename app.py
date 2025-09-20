@@ -2,11 +2,11 @@
 # Real-World E-commerce Webapp
 # ----------------------------------------------------
 #
-# This file contains the updated code for your Flask e-commerce application.
-# It addresses three key areas:
+# This file contains the updated code for  Flask e-commerce application.
+# It addresses the key areas:
 # 1. Security (Auth and SQL Injection)
 # 2. Payment Integration (Stripe)
-# 3. Code Quality (Structure and Best Practices)
+
 
 # Necessary imports for this updated application
 import sqlite3
@@ -26,8 +26,6 @@ from flask_login import (
 # ----------------------------------------------------
 # 1. Database Connection and Helper Functions
 # ----------------------------------------------------
-# The database connection functions remain similar, but we'll use parameterized queries
-# in the main routes to prevent SQL injection.
 def get_db_connection():
     conn = sqlite3.connect("database.db")
     conn.row_factory = sqlite3.Row
@@ -47,7 +45,6 @@ def get_item(item_id):
 # 2. Flask-Login Integration for Secure Authentication
 # ----------------------------------------------------
 # To address the direct URL access issue, we'll use Flask-Login.
-# First, install the necessary package: `pip install Flask-Login`
 
 app = Flask(__name__)
 app.config["SECRET_KEY"] = "your_strong_secret_key_here"
@@ -59,7 +56,6 @@ login_manager.login_view = "sign_in"  # Tells Flask-Login where the login page i
 
 
 # A simple user class to work with Flask-Login.
-# Note: For a real-world app, you would have a dedicated User model.
 class Admin(UserMixin):
     def __init__(self, id, username):
         self.id = id
@@ -119,7 +115,6 @@ def sign_in():
         password = request.form["password"]
 
         conn = get_db_connection()
-        # CRITICAL FIX: Use parameterized query to prevent SQL injection
         admin_data = conn.execute(
             "SELECT * FROM Admin WHERE username = ?", (username,)
         ).fetchone()
@@ -144,14 +139,14 @@ def logout():
     return redirect(url_for("index"))
 
 
-# All admin-only views now require a login
+
 @app.route("/category", methods=("GET", "POST"))
-@login_required  # The `@login_required` decorator is a game changer!
+@login_required 
 def category():
     # Since we are using login_required, we know the user is authenticated.
     # Now, let's make sure they are an admin.
     if not current_user.is_admin:
-        abort(403)  # Forbidden
+        abort(403) 
 
     conn = get_db_connection()
     categories = conn.execute("SELECT * FROM Categories").fetchall()
@@ -170,8 +165,6 @@ def category():
 
     return render_template("category.html", categories=categories)
 
-
-# ... and so on for all your admin-only routes ...
 
 
 @app.route("/<int:c_id>/c_edit", methods=("GET", "POST"))
@@ -437,7 +430,6 @@ def add_user():
     if request.method == "POST":
         username = request.form["u_username"]
         password = request.form["u_password"]
-        # The email field is in the HTML, but not handled here.
 
         # CRITICAL FIX: Hash the password before storing it
         hashed_password = generate_password_hash(password)
@@ -465,7 +457,6 @@ def user_signin():
         password = request.form["u_password"]
 
         conn = get_db_connection()
-        # CRITICAL FIX: Use parameterized query
         user_data = conn.execute(
             "SELECT * FROM User WHERE u_username = ?", (username,)
         ).fetchone()
@@ -485,7 +476,6 @@ def user_signin():
 @app.route("/u_category", methods=("GET", "POST"))
 @login_required
 def u_category():
-    # This page is accessible to both Admin and AppUser
     conn = get_db_connection()
     categories = conn.execute("SELECT * FROM Categories").fetchall()
     conn.close()

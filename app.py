@@ -10,6 +10,8 @@
 
 # Necessary imports for this updated application
 import sqlite3
+import stripe
+import os
 from flask import Flask, render_template, request, url_for, flash, redirect, session
 from werkzeug.exceptions import abort
 from werkzeug.security import generate_password_hash, check_password_hash
@@ -97,6 +99,13 @@ def load_user(user_id):
         return AppUser(user_data["u_id"], user_data["u_username"])
     return None
 
+
+# STRIPE INTEGRATION
+# Use os.environ.get() to securely get keys from environment variables
+stripe.api_key = os.environ.get("STRIPE_SECRET_KEY", "your_secret_key_here")
+STRIPE_PUBLISHABLE_KEY = os.environ.get(
+    "STRIPE_PUBLISHABLE_KEY", "your_publishable_key_here"
+)
 
 # ----------------------------------------------------
 # 3. Main Routes (Updated with security features)
@@ -506,8 +515,6 @@ def u_items_list(c_id):
 )
 @login_required
 def pre_book(c_id, i_id):
-    # This route is where we'll integrate the Stripe payment logic.
-    # The existing logic of deducting stock will be tied to a successful payment.
     item = get_item(i_id)
 
     if item["weight"] == 0:
@@ -519,26 +526,36 @@ def pre_book(c_id, i_id):
         if not item_wt or float(item_wt) <= 0:
             flash("Please enter a valid weight.", "danger")
         else:
-            conn = get_db_connection()
-            add = float(item["weight"]) - float(item_wt)
-            price = float(item_wt) * item["price_per_unit"]
-            if add < 0:
-                flash('Only "{}" is available!'.format(item["weight"]), "warning")
-            else:
-                # Stock deduction logic should be here, after successful payment. For now, it remains as is.
-                conn.execute("UPDATE Items SET weight=? WHERE id=?", (add, i_id))
-                conn.commit()
-                conn.close()
-                conn = get_db_connection()
-                conn.execute(
-                    "INSERT INTO Orders (u_id,item_id,quantity,price) VALUES (?,?,?,?)",
-                    (current_user.id, i_id, item_wt, price),
-                )
-                conn.commit()
-                conn.close()
-                flash("Order placed successfully!", "success")
-                return redirect(url_for("u_items_list", c_id=c_id))
+            # Check if cart exists in session, if not create one
+            if "cart" not in session:
+                session["cart"] = {}
+
+            # Add item to the cart in the session, Use the item ID as the key
+            session["cart"][str(i_id)] = {
+                "name": item["name"],
+                "price": item["price_per_unit"],
+                "quantity": float(item_wt),
+            }
+            # The session needs to be modified directly to trigger saving
+            session.modified = True
+
+            flash(f"'{item['name']}' added to your cart!", "success")
+            # return redirect(url_for("user_orders"))
+            return redirect(url_for("u_items_list", c_id=c_id))
     return render_template("pre_book.html", item=item)
+
+
+@app.route("/remove_from_cart/<int:item_id>", methods=["POST"])
+@login_required
+def remove_from_cart(item_id):
+    if "cart" in session and str(item_id) in session["cart"]:
+        session["cart"].pop(str(item_id))
+        session.modified = True
+        flash("Item removed from cart.", "info")
+    else:
+        flash("Item not found in cart or cart is empty.", "warning")
+
+    return redirect(url_for("user_orders"))
 
 
 @app.route("/user_orders", methods=("GET",))
@@ -596,3 +613,63 @@ def user_history():
     ).fetchall()
     conn.close()
     return render_template("user_history.html", orders=orders)
+
+
+# ----------------------------------------------------
+# 4. Stripe Payment Integration Routes
+# ----------------------------------------------------
+
+
+@app.route("/create-checkout-session", methods=["POST"])
+@login_required
+def create_checkout_session():
+    # Use the items from the user's session cart
+    cart = session.get("cart", {})
+    if not cart:
+        flash("Your cart is empty.", "warning")
+        return redirect(url_for("user_orders"))
+
+    line_items = []
+    for item_id, item_data in cart.items():
+        # Fetch the real-time item details from the database
+        conn = get_db_connection()
+        db_item = conn.execute(
+            "SELECT * FROM Items WHERE id = ?", (item_id,)
+        ).fetchone()
+        conn.close()
+
+        if not db_item:
+            flash(f"Item with ID {item_id} not found.", "danger")
+            continue
+
+        # Create the line item for Stripe based on dynamic data
+        line_items.append(
+            {
+                "price_data": {
+                    "currency": "usd",
+                    "product_data": {
+                        "name": db_item["name"],
+                    },
+                    "unit_amount": int(db_item["price_per_unit"] * 100),
+                },
+                "quantity": item_data["quantity"],
+            }
+        )
+
+    if not line_items:
+        flash("There was an issue with your cart items.", "danger")
+        return redirect(url_for("user_orders"))
+
+    try:
+        checkout_session = stripe.checkout.Session.create(
+            line_items=line_items,
+            mode="payment",
+            success_url=url_for("user_orders", _external=True),
+            cancel_url=url_for("user_orders", _external=True),
+        )
+        # Store checkout session ID and other data to use in the webhook later
+        session["checkout_session_id"] = checkout_session.id
+        session.modified = True
+        return redirect(checkout_session.url, code=303)
+    except Exception as e:
+        return str(e)

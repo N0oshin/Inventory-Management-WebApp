@@ -1,42 +1,68 @@
+<br>
+<br>
 {% extends 'base3.html' %}
 
 {% block content %}
 
 <style>
-body{
-background-color:#F9F8ED;
-}
+  body {
+    background-color: #F9F8ED;
+  }
 </style>
 
+<h1 style="text-align:center; font-family:roboto; margin-top:50px;">Your Cart</h1>
 
-<h1 style="text-align:center;  font-family:roboto; margin-top:50px;"> {% block title %} orders {% endblock %}</h1>
-<table class="table table-striped table-hover">
+<div class="container">
+  <table class="table table-striped table-hover">
     <thead>
       <tr>
-        <th scope="col">Order Id</th>
-        <th scope="col">Order Date and Time</th>
+        <th scope="col">Item ID</th>
         <th scope="col">Product Name</th>
         <th scope="col">Quantity</th>
+        <th scope="col">Price per Unit</th>
         <th scope="col">Total Price</th>
-        <th scope="col">Status</th>
+        <th scope="col">Action</th>
       </tr>
     </thead>
     <tbody>
-        {% for order in orders %}
-     <tr>
-        <th scope="row">{{ order['order_id'] }}</th>
-        <th scope="row">{{ order['order_dateandtime'] }}</th>
-        <td>{{ order['name'] }}</td>
-        <td>{{ order['quantity'] }}</td>
-        <td>{{ order['price'] }}</td>
-        <td><form action="{{ url_for('cancel_order', order_id=order['order_id']) }}" method="POST"> <input type="submit" value="Cancel order"class="btn btn-danger btn-sm"onclick="return confirm('Are you sure you want to delete this item?')">  
-        </form></td>
-        </tr>
+      {% set total_price = 0 %}
+      {% if session['cart'] %}
+      {% for item_id, item_data in session['cart'].items() %}
+      <tr>
+        <th scope="row">{{ item_id }}</th>
+        <td>{{ item_data['name'] }}</td>
+        <td>{{ item_data['quantity'] }}</td>
+        <td>{{ item_data['price'] }} Rs</td>
+        {% set item_total = item_data['price'] * item_data['quantity'] %}
+        <td>{{ item_total }} Rs</td>
+        <td>
+          <form action="{{ url_for('remove_from_cart', item_id=item_id) }}" method="POST">
+            <button type="submit" class="btn btn-danger btn-sm">Remove</button>
+          </form>
+        </td>
+      </tr>
+      {% set total_price = total_price + item_total %}
+      {% endfor %}
+      {% else %}
+      <tr>
+        <td colspan="6" class="text-center">Your cart is empty.</td>
+      </tr>
+      {% endif %}
+    </tbody>
+    <tfoot>
+      <tr>
+        <td colspan="4" class="text-right"><strong>Grand Total:</strong></td>
+        <td><strong>{{ total_price }} Rs</strong></td>
+        <td></td>
+      </tr>
+    </tfoot>
+  </table>
+  <div class="d-flex justify-content-center mt-4">
+    <form action="{{ url_for('create_checkout_session') }}" method="POST">
+      <button type="submit" class="btn btn-primary btn-lg">Proceed to Checkout</button>
+    </form>
+  </div>
 
-    
-	
-  {% endfor %}
-  {% endblock %}
-</tbody>
-</table>
-    
+</div>
+
+{% endblock %}

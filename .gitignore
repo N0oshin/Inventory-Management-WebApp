@@ -17,5 +17,4 @@ instance/
 *.log
 .DS_Store
 
-# Your HTML demo file
-templates/demo.html
+

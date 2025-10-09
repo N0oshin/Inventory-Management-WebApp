@@ -1,7 +1,9 @@
-# Inventory Management WebApp  
+# Inventory Management E-commerce Webapp
 
 ## Overview  
-This web application is designed exclusively for NITC members to streamline inventory management. It provides separate functionalities for **admins** and **users**.
+This project is a secure, full-stack inventory management and e-commerce application built with Python, Flask, and SQLite. It simulates a complete retail environment, managing user roles (Admin/User), dynamic inventory, and a secure payment pipeline integrated with Stripe
+
+The application serves as a comprehensive demonstration of backend security best practices, data integrity via database transactions, and professional third-party API integration.
 
 ## Features  
 

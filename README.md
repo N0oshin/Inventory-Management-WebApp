@@ -21,25 +21,28 @@ The application serves as a comprehensive demonstration of backend security best
 - Secure Checkout: Redirect to Stripe for secure payment processing.
 - Order Management: View previous purchases and cancel non-finalized orders.
 
-### **Key Technical & Security Highlights**
+## **Key Technical & Security Highlights**
 This project showcases a deep understanding of production-grade software development principles:
 
-1. Atomic Transactional Integrity
-ACID Compliance: Implements database transactions (BEGIN TRANSACTION / COMMIT / ROLLBACK) within the Stripe Webhook handler.
+**1. Atomic Transactional Integrity**
+- ACID Compliance: Implements database transactions (BEGIN TRANSACTION / COMMIT / ROLLBACK) within the Stripe Webhook handler.
 
-Guaranteed Consistency: This ensures that the stock deduction and order insertion are treated as a single, indivisible operation, preventing data corruption if a server crash occurs.
+- Guaranteed Consistency: This ensures that the stock deduction and order insertion are treated as a single, indivisible operation, preventing data corruption if a server crash occurs.
 
-2. Fraud-Proof Payment Pipeline
-Secure Webhook: Utilizes a dedicated Stripe Webhook endpoint (/stripe-webhook) for server-to-server payment confirmation. This avoids client-side fraud entirely.
+**2. Fraud-Proof Payment Pipeline**
+- Secure Webhook: Utilizes a dedicated Stripe Webhook endpoint (/stripe-webhook) for server-to-server payment confirmation. This avoids client-side fraud entirely.
 
-Signature Verification: Employs stripe.Webhook.construct_event with a secret signing key to cryptographically verify that the payment confirmation message is authentic and untampered.
+- Signature Verification: Employs stripe.Webhook.construct_event with a secret signing key to cryptographically verify that the payment confirmation message is authentic and untampered.
 
-3. Core Application Security
-SQL Injection Prevention: All database operations utilize Parameterized Queries to securely handle user input.
+**3. Core Application Security**
+- SQL Injection Prevention: All database operations utilize Parameterized Queries to securely handle user input.
 
-Secret Management: Sensitive keys (API keys, Flask secrets) are safely loaded using python-dotenv and Environment Variables, eliminating hardcoded secrets in the codebase.
+- Secret Management: Sensitive keys (API keys, Flask secrets) are safely loaded using python-dotenv and Environment Variables, eliminating hardcoded secrets in the codebase.
 
-Access Control: Enforces role-based authorization using @login_required and explicit current_user.is_admin checks on all protected routes.
+- Access Control: Enforces role-based authorization using @login_required and explicit current_user.is_admin checks on all protected routes.
+
+
+
 ![WhatsApp Image 2025-03-26 at 7 40 31 PM](https://github.com/user-attachments/assets/002c6c0c-f987-4022-9375-22052d3a2816)
 ![WhatsApp Image 2025-03-26 at 7 39 45 PM](https://github.com/user-attachments/assets/2686ca4f-5a85-474b-9dd2-ad9a2b5f59ad)
 ![WhatsApp Image 2025-03-26 at 7 39 46 PM (1)](https://github.com/user-attachments/assets/bd08eaa4-9fb6-47e5-b375-a9a2f2cba20e)

@@ -42,7 +42,7 @@ This project showcases a deep understanding of production-grade software develop
 - Access Control: Enforces role-based authorization using @login_required and explicit current_user.is_admin checks on all protected routes.
 
 
-
+## **Images**
 ![WhatsApp Image 2025-03-26 at 7 40 31 PM](https://github.com/user-attachments/assets/002c6c0c-f987-4022-9375-22052d3a2816)
 ![WhatsApp Image 2025-03-26 at 7 39 45 PM](https://github.com/user-attachments/assets/2686ca4f-5a85-474b-9dd2-ad9a2b5f59ad)
 ![WhatsApp Image 2025-03-26 at 7 39 46 PM (1)](https://github.com/user-attachments/assets/bd08eaa4-9fb6-47e5-b375-a9a2f2cba20e)
@@ -54,6 +54,8 @@ This project showcases a deep understanding of production-grade software develop
 ![WhatsApp Image 2025-03-26 at 7 39 45 PM (6)](https://github.com/user-attachments/assets/00687209-2aa0-4e7b-9a11-ada55a14a111)
 ![WhatsApp Image 2025-03-26 at 7 39 45 PM (5)](https://github.com/user-attachments/assets/30f3496c-c21d-4be6-98ba-bbec9e0fd5ca)
 ![WhatsApp Image 2025-03-26 at 7 39 45 PM (4)](https://github.com/user-attachments/assets/2c87efe4-0d0e-4f69-8a8f-bf6919fd735e)
+<img width="1915" height="1024" alt="image" src="https://github.com/user-attachments/assets/8a663e48-3747-4470-a352-033a85801bbd" />
+
 
 
 ## Technology Stack Used

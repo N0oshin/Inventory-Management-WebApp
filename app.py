@@ -7,8 +7,6 @@
 # 1. Security (Auth and SQL Injection)
 # 2. Payment Integration (Stripe)
 
-
-# Necessary imports for this updated application
 import sqlite3
 import stripe
 import os
@@ -23,6 +21,15 @@ from flask_login import (
     logout_user,
     current_user,
 )
+
+# ---------------------------------
+# STRIPE INTEGRATION
+# ---------------------------------
+
+# Use os.environ.get() to securely get keys from environment variables
+stripe.api_key = os.environ.get("STRIPE_SECRET_KEY", "SK_TEST_PLACEHOLDER")
+STRIPE_PUBLISHABLE_KEY = os.environ.get("STRIPE_PUBLISHABLE_KEY", "PK_TEST_PLACEHOLDER")
+STRIPE_WEBHOOK_SECRET = os.environ.get("STRIPE_WEBHOOK_SECRET", "WHSEC_PLACEHOLDER")
 
 
 # ----------------------------------------------------
@@ -49,7 +56,9 @@ def get_item(item_id):
 # To address the direct URL access issue, we'll use Flask-Login.
 
 app = Flask(__name__)
-app.config["SECRET_KEY"] = "your_strong_secret_key_here"
+app.config["SECRET_KEY"] = os.environ.get(
+    "FLASK_SECRET_KEY", "Default_Insecure_Fallback_Key"
+)
 
 # Initialize Flask-Login
 login_manager = LoginManager()
@@ -96,13 +105,6 @@ def load_user(user_id):
     return None
 
 
-# STRIPE INTEGRATION
-# Use os.environ.get() to securely get keys from environment variables
-stripe.api_key = os.environ.get("STRIPE_SECRET_KEY", "your_secret_key_here")
-STRIPE_PUBLISHABLE_KEY = os.environ.get(
-    "STRIPE_PUBLISHABLE_KEY", "your_publishable_key_here"
-)
-
 # ----------------------------------------------------
 # 3. Main Routes (Updated with security features)
 # ----------------------------------------------------
@@ -148,14 +150,13 @@ def logout():
     return redirect(url_for("index"))
 
 
-
 @app.route("/category", methods=("GET", "POST"))
-@login_required 
+@login_required
 def category():
     # Since we are using login_required, we know the user is authenticated.
     # Now, let's make sure they are an admin.
     if not current_user.is_admin:
-        abort(403) 
+        abort(403)
 
     conn = get_db_connection()
     categories = conn.execute("SELECT * FROM Categories").fetchall()
@@ -173,7 +174,6 @@ def category():
             return redirect(url_for("category"))
 
     return render_template("category.html", categories=categories)
-
 
 
 @app.route("/<int:c_id>/c_edit", methods=("GET", "POST"))
@@ -633,6 +633,10 @@ def create_checkout_session():
             continue
 
         # Create the line item for Stripe based on dynamic data
+        unit_price_in_cents = int(float(db_item["price_per_unit"]) * 100)
+
+        item_quantity = int(item_data["quantity"])
+
         line_items.append(
             {
                 "price_data": {
@@ -640,9 +644,9 @@ def create_checkout_session():
                     "product_data": {
                         "name": db_item["name"],
                     },
-                    "unit_amount": int(db_item["price_per_unit"] * 100),
+                    "unit_amount": unit_price_in_cents,
                 },
-                "quantity": item_data["quantity"],
+                "quantity": item_quantity,
             }
         )
 
@@ -663,3 +667,95 @@ def create_checkout_session():
         return redirect(checkout_session.url, code=303)
     except Exception as e:
         return str(e)
+
+
+# Route to handle successful payment confirmation from Stripe
+@app.route("/stripe-webhook", methods=["POST"])
+def stripe_webhook():
+    payload = request.data
+    sig_header = request.headers.get("stripe-signature")
+    event = None
+
+    global STRIPE_WEBHOOK_SECRET
+    WEBHOOK_SECRET = STRIPE_WEBHOOK_SECRET
+
+    # ---- verification ------
+
+    try:
+        event = stripe.Webhook.construct_event(payload, sig_header, WEBHOOK_SECRET)
+    except ValueError as e:
+        # Invalid payload (data format error)
+        print("Webhook Error: Invalid payload")
+        return "Invalid payload received.", 400
+    except stripe.error.SignatureVerificationError as e:
+        # Invalid signature(potential hacking attempt)
+        print("Webhook Error: Invalid signature")
+        return "Invalid signature.", 400
+    except Exception as e:
+        # general unexpected error
+        print(f"webhook error: {e}")
+        return "An error occurred.", 400
+
+    # If the code reaches here, the message is 100% verified as coming from Stripe.
+    print("Webhook verification successful.")
+
+    # --- Process the event ---
+    # Check Event Type for Successful Payment
+    if event["type"] == "checkout.session.completed":
+        session = event["data"]["object"]
+
+        # --- ORDER FINALIZATION ---
+        user_id = session["metadata"].get("user_id")
+
+        # Extract item data we stored (e.g., item_1_id, item_1_qty, item_2_id, item_2_qty)
+        item_data = {}
+        for key, value in session["metadata"].items():
+            if key.startswith("item_") and key.endswith("_id"):
+                item_id = value
+                # Construct the key for the quantity
+                qty_key = key.replace("_id", "_qty")
+                quantity = session["metadata"].get(qty_key)
+
+                if item_id and quantity:
+                    item_data[item_id] = float(quantity)
+
+        # ----- Database Transaction -----
+        conn = get_db_connection()
+        try:
+            conn.execute("BEGIN TRANSACTION;")
+
+            for item_id_str, quantity in item_data.items():
+                item_id = int(item_id_str)
+                item = conn.execute(
+                    "SELECT * FROM Items WHERE id = ?", (item_id,)
+                ).fetchone()
+
+                if item and item["weight"] >= quantity:
+                    item_price = item["price_per_unit"] * quantity
+                    ## Deduct Stock
+                    new_weight = item["weight"] - quantity
+                    conn.execute(
+                        "UPDATE Items SET weight = ? WHERE id = ?",
+                        (new_weight, item_id),
+                    )
+
+                    # create final order in the database
+                    conn.execute(
+                        "INSERT INTO Orders (u_id, item_id, quantity, price) VALUES (?, ?, ?, ?)",
+                        (user_id, item_id, quantity, item_price),
+                    )
+                else:
+                    print(
+                        f"WARNING: Insufficient stock for item ID {item_id} or item not found. Order skipped for this item."
+                    )
+
+            conn.commit()  # Save all changes
+        except Exception as e:
+            conn.rollback()  # Rollback changes if any error occurs
+            print(f"Database transaction failed: {e}")
+            return "Database error", 500
+        finally:
+            conn.close()
+
+    # We must respond to Stripe quickly, regardless of the outcome
+    return "Success", 200

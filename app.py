@@ -1,3 +1,4 @@
+
 # ----------------------------------------------------
 # Real-World E-commerce Webapp
 # ----------------------------------------------------
@@ -6,6 +7,8 @@
 # It addresses the key areas:
 # 1. Security (Auth and SQL Injection)
 # 2. Payment Integration (Stripe)
+
+
 
 import sqlite3
 import stripe
@@ -21,6 +24,7 @@ from flask_login import (
     logout_user,
     current_user,
 )
+
 
 # ---------------------------------
 # STRIPE INTEGRATION
@@ -60,10 +64,12 @@ app.config["SECRET_KEY"] = os.environ.get(
     "FLASK_SECRET_KEY", "Default_Insecure_Fallback_Key"
 )
 
+    
 # Initialize Flask-Login
 login_manager = LoginManager()
 login_manager.init_app(app)
 login_manager.login_view = "sign_in"  # Tells Flask-Login where the login page is
+
 
 
 # A simple user class to work with Flask-Login.
@@ -75,6 +81,7 @@ class Admin(UserMixin):
 
     def is_active(self):
         return True
+
 
 
 class AppUser(UserMixin):
@@ -105,6 +112,7 @@ def load_user(user_id):
     return None
 
 
+    
 # ----------------------------------------------------
 # 3. Main Routes (Updated with security features)
 # ----------------------------------------------------
@@ -143,11 +151,13 @@ def sign_in():
     return render_template("sign_in.html")
 
 
+
 # Logout route
 @app.route("/logout")
 def logout():
     logout_user()
     return redirect(url_for("index"))
+
 
 
 @app.route("/category", methods=("GET", "POST"))
@@ -176,6 +186,7 @@ def category():
     return render_template("category.html", categories=categories)
 
 
+
 @app.route("/<int:c_id>/c_edit", methods=("GET", "POST"))
 @login_required
 def c_edit(c_id):
@@ -200,6 +211,7 @@ def c_edit(c_id):
     return render_template("c_edit.html", category=category)
 
 
+
 @app.route("/<int:c_id>/c_delete", methods=("POST",))
 @login_required
 def c_delete(c_id):
@@ -212,6 +224,7 @@ def c_delete(c_id):
     conn.close()
     flash('"{}" was successfully deleted!'.format(category["c_name"]))
     return redirect(url_for("category"))
+
 
 
 @app.route("/category/<int:c_id>/items_list", methods=("GET", "POST"))
@@ -240,6 +253,7 @@ def items_list(c_id):
     return render_template("items_list.html", items=items)
 
 
+
 @app.route("/<int:c_id>/<int:id>/add_stock", methods=("GET", "POST"))
 @login_required
 def add_stock(c_id, id):
@@ -258,6 +272,7 @@ def add_stock(c_id, id):
             conn.close()
             return redirect(url_for("items_list", c_id=c_id))
     return render_template("add_stock.html", item=item)
+
 
 
 @app.route("/<int:c_id>/<int:id>/item_edit", methods=("GET", "POST"))
@@ -283,6 +298,7 @@ def item_edit(c_id, id):
     return render_template("item_edit.html", item=item)
 
 
+
 @app.route("/<int:c_id>/<int:id>/delete", methods=("POST",))
 @login_required
 def delete(c_id, id):
@@ -295,6 +311,7 @@ def delete(c_id, id):
     conn.close()
     flash('"{}" was successfully deleted!'.format(item["name"]))
     return redirect(url_for("items_list", c_id=c_id))
+
 
 
 @app.route("/orders", methods=("GET", "POST"))
@@ -319,6 +336,7 @@ def orders():
             ).fetchall()
             return render_template("orders.html", orders=u_orders, u_id=u_id)
     return render_template("orders.html", orders=orders)
+
 
 
 @app.route("/<int:order_id>/collected", methods=("POST",))
@@ -351,6 +369,7 @@ def collected(order_id):
     return redirect(url_for("orders"))
 
 
+
 @app.route("/<int:order_id>/delete_order", methods=("POST",))
 @login_required
 def delete_order(order_id):
@@ -374,6 +393,7 @@ def delete_order(order_id):
     conn.close()
     flash('order_id = "{}" was successfully deleted!'.format(order["order_id"]))
     return redirect(url_for("orders"))
+
 
 
 @app.route("/history", methods=("GET", "POST"))
@@ -400,6 +420,7 @@ def history():
     return render_template("history.html", orders=orders)
 
 
+
 @app.route("/out_of_stock", methods=("GET", "POST"))
 @login_required
 def out_of_stock():
@@ -409,6 +430,7 @@ def out_of_stock():
     items = conn.execute("SELECT * FROM Items WHERE weight=?", (0,)).fetchall()
     conn.close()
     return render_template("out_of_stock.html", items=items)
+
 
 
 @app.route("/<int:id>/add_stock", methods=("GET", "POST"))
@@ -429,6 +451,7 @@ def out_of_stock_add(id):
             conn.close()
             return redirect(url_for("out_of_stock"))
     return render_template("out_of_stock_add.html", item=item)
+
 
 
 @app.route("/add_user", methods=["GET", "POST"])
@@ -453,6 +476,7 @@ def add_user():
         flash("User added successfully!", "success")
         return redirect(url_for("add_user"))
     return render_template("add_user.html")
+
 
 
 # User-specific routes
@@ -482,6 +506,8 @@ def user_signin():
     return render_template("user_signin.html")
 
 
+
+
 @app.route("/u_category", methods=("GET", "POST"))
 @login_required
 def u_category():
@@ -498,6 +524,8 @@ def u_items_list(c_id):
     items = conn.execute("SELECT * FROM Items WHERE c_id = ?", (c_id,)).fetchall()
     conn.close()
     return render_template("u_items_list.html", items=items, c_id=c_id)
+
+
 
 
 @app.route(
@@ -535,6 +563,8 @@ def pre_book(c_id, i_id):
     return render_template("pre_book.html", item=item)
 
 
+
+
 @app.route("/remove_from_cart/<int:item_id>", methods=["POST"])
 @login_required
 def remove_from_cart(item_id):
@@ -559,6 +589,8 @@ def user_orders():
     ).fetchall()
     conn.close()
     return render_template("user_orders.html", orders=user_orders)
+
+
 
 
 @app.route("/<int:order_id>/cancel_order", methods=("POST",))
@@ -603,6 +635,7 @@ def user_history():
     ).fetchall()
     conn.close()
     return render_template("user_history.html", orders=orders)
+
 
 
 # ----------------------------------------------------
@@ -667,6 +700,8 @@ def create_checkout_session():
         return redirect(checkout_session.url, code=303)
     except Exception as e:
         return str(e)
+
+
 
 
 # Route to handle successful payment confirmation from Stripe

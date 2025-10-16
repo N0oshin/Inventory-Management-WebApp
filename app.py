@@ -646,7 +646,7 @@ def user_history():
 @app.route("/create-checkout-session", methods=["POST"])
 @login_required
 def create_checkout_session():
-    # Use the items from the user's session cart
+    #  This line safely retrieves the cart from the user's session. If the session doesn't contain a key named "cart" (which could happen if the user clears cookies), it defaults to an empty dictionary {} instead of crashing with a KeyError
     cart = session.get("cart", {})
     if not cart:
         flash("Your cart is empty.", "warning")
@@ -654,7 +654,7 @@ def create_checkout_session():
 
     line_items = []
     for item_id, item_data in cart.items():
-        # Fetch the real-time item details from the database
+        # This ensures that the item price charged is the current price in the database, not the price stored in the user's browser session. If the user tried to tamper with the price in their session, the database price would override it. This is a core fraud prevention technique.
         conn = get_db_connection()
         db_item = conn.execute(
             "SELECT * FROM Items WHERE id = ?", (item_id,)
@@ -665,7 +665,7 @@ def create_checkout_session():
             flash(f"Item with ID {item_id} not found.", "danger")
             continue
 
-        # Create the line item for Stripe based on dynamic data
+        # Stripe's API is strict about receiving only integers for prices and quantities.
         unit_price_in_cents = int(float(db_item["price_per_unit"]) * 100)
 
         item_quantity = int(item_data["quantity"])
@@ -687,6 +687,7 @@ def create_checkout_session():
         flash("There was an issue with your cart items.", "danger")
         return redirect(url_for("user_orders"))
 
+    # This is where Flask application communicates with Stripe's server.
     try:
         checkout_session = stripe.checkout.Session.create(
             line_items=line_items,
@@ -737,6 +738,7 @@ def stripe_webhook():
     # --- Process the event ---
     # Check Event Type for Successful Payment
     if event["type"] == "checkout.session.completed":
+        # This line extracts the core Checkout Session details, including the critical metadata (which holds our order details).
         session = event["data"]["object"]
 
         # --- ORDER FINALIZATION ---
